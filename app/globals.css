@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ls-navy: #0f172a;
+  --ls-blue: #2563eb;
+  --ls-green: #10b981;
+  --ls-amber: #f59e0b;
+  --ls-red: #ef4444;
+}
+
+html {
+  scroll-behavior: smooth;
+}

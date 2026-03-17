@@ -66,14 +66,14 @@ function Problems() {
     { icon: "📋", title: "Manual QC Logs", desc: "3-5 hours/week on paper or spreadsheets that no one wants to audit" },
     { icon: "⏰", title: "Delayed Detection", desc: "Instrument drift goes unnoticed for days — caught at inspection, not in real time" },
     { icon: "😰", title: "Audit Anxiety", desc: "Scrambling to compile documentation when accreditation review comes around" },
-    { icon: "🔄", title: "No Corrective Action Trail", desc: "When QC fails, there's no standardized workflow or sign-off process" },
+    { icon: "🔄", title: "No Corrective Action Trail", desc: "When QC fails, there&apos;s no standardized workflow or sign-off process" },
   ];
   return (
     <section className="py-20 px-6 bg-slate-900/50">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-3xl font-bold text-center mb-4">Sound familiar?</h2>
         <p className="text-slate-400 text-center mb-12 max-w-2xl mx-auto">
-          Most vet diagnostic labs run QC the same way they did 20 years ago. It works — until it doesn't.
+          Most vet diagnostic labs run QC the same way they did 20 years ago. It works — until it doesn&apos;t.
         </p>
         <div className="grid md:grid-cols-2 gap-6">
           {problems.map((p, i) => (
@@ -119,7 +119,7 @@ function Features() {
     {
       icon: "📊",
       title: "Instrument Dashboard",
-      desc: "Status cards for every analyzer. Green/yellow/red at a glance. Know your lab's health in 5 seconds."
+      desc: "Status cards for every analyzer. Green/yellow/red at a glance. Know your lab&apos;s health in 5 seconds."
     },
   ];
   return (
@@ -127,7 +127,7 @@ function Features() {
       <div className="max-w-6xl mx-auto">
         <h2 className="text-3xl font-bold text-center mb-4">What LabSentry Does</h2>
         <p className="text-slate-400 text-center mb-12 max-w-2xl mx-auto">
-          Everything you need for QC compliance — nothing you don't.
+          Everything you need for QC compliance — nothing you don&apos;t.
         </p>
         <div className="grid md:grid-cols-3 gap-6">
           {features.map((f, i) => (
@@ -244,7 +244,7 @@ function CTA() {
       });
       setSubmitted(true);
     } catch {
-      setSubmitted(true); // still show success — we'll capture in logs
+      setSubmitted(true); // still show success — we&apos;ll capture in logs
     }
     setSending(false);
   }
@@ -254,8 +254,8 @@ function CTA() {
       <div className="max-w-xl mx-auto text-center">
         <h2 className="text-3xl font-bold mb-4">Ready to see LabSentry in your lab?</h2>
         <p className="text-slate-400 mb-8">
-          We're onboarding labs one at a time to make sure the experience is right. 
-          Drop your info and we'll reach out within 24 hours.
+          We&apos;re onboarding labs one at a time to make sure the experience is right. 
+          Drop your info and we&apos;ll reach out within 24 hours.
         </p>
         {submitted ? (
           <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-8">

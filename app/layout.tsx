@@ -6,11 +6,11 @@ import { Analytics } from "@vercel/analytics/next";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "LabSentry — Investigate why QC keeps shifting",
-  description: "LabSentry is exploring a service that connects analyzer QC patterns with calibration, reagent changes, maintenance, and confirmed service findings.",
+  title: "LabSentry — Keep lab records organized",
+  description: "LabSentry is exploring a shared workspace for small to medium labs managing QC and maintenance in spreadsheets.",
   openGraph: {
-    title: "LabSentry — Investigate why QC keeps shifting",
-    description: "Seeking input from independent analyzer service professionals.",
+    title: "LabSentry — Keep lab records organized",
+    description: "Speaking with lab staff about missing records, overdue tasks, and audit preparation.",
     type: "website",
   },
 };

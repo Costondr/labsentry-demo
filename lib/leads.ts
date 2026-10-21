@@ -36,7 +36,7 @@ async function ensureSchema(sql: ReturnType<typeof db>) {
       await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS name text`;
       await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS company text`;
       await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS role text`;
-      await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS analyzers text`;
+      await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS tracking text`;
       await sql`ALTER TABLE leads ALTER COLUMN lab DROP NOT NULL`;
     })().catch((e) => {
       schemaReady = null; // retry on the next request
@@ -51,7 +51,7 @@ export type Lead = {
   company: string;
   role: string;
   email: string;
-  analyzers: string | null;
+  tracking: string | null;
 };
 
 /** Saves a lead and returns its id. Throws if the database is unavailable. */
@@ -60,8 +60,8 @@ export async function saveLead(lead: Lead): Promise<string> {
   await ensureSchema(sql);
   const environment = process.env.VERCEL_ENV ?? "development";
   const rows = (await sql`
-    INSERT INTO leads (name, company, role, email, analyzers, environment)
-    VALUES (${lead.name}, ${lead.company}, ${lead.role}, ${lead.email}, ${lead.analyzers}, ${environment})
+    INSERT INTO leads (name, company, role, email, tracking, environment)
+    VALUES (${lead.name}, ${lead.company}, ${lead.role}, ${lead.email}, ${lead.tracking}, ${environment})
     RETURNING id`) as { id: string }[];
   return rows[0].id;
 }

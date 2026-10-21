@@ -36,14 +36,14 @@ export async function POST(req: NextRequest) {
   const company = field(body, "company");
   const role = field(body, "role");
   const email = field(body, "email");
-  const analyzersRaw = field(body, "analyzers");
+  const trackingRaw = field(body, "tracking");
 
   if (!EMAIL_RE.test(email) || email.length > 254) return fail(400, "invalid_email");
-  if (!name || name.length > 120 || !company || company.length > 200 || !role || role.length > 120 || analyzersRaw.length > 500) {
+  if (!name || name.length > 120 || !company || company.length > 200 || !role || role.length > 120 || trackingRaw.length > 500) {
     return fail(400, "invalid_fields");
   }
 
-  const lead: Lead = { name, company, role, email, analyzers: analyzersRaw || null };
+  const lead: Lead = { name, company, role, email, tracking: trackingRaw || null };
   const receivedAt = new Date().toISOString();
 
   // Structured log line: a short-lived backup record in Vercel runtime logs.
@@ -99,10 +99,10 @@ async function sendNotification(
         html: `
           <h2>New LabSentry conversation request</h2>
           ${row("Name", lead.name)}
-          ${row("Company", lead.company)}
+          ${row("Lab or organization", lead.company)}
           ${row("Role", lead.role)}
           ${row("Email", lead.email)}
-          ${row("Analyzers serviced", lead.analyzers ?? "Not given")}
+          ${row("Tracks QC and maintenance with", lead.tracking ?? "Not given")}
           <p><strong>Received:</strong> ${new Date(receivedAt).toLocaleString("en-US", { timeZone: "America/New_York" })}</p>
           <hr>
           <p>Reply directly to this email to respond.</p>

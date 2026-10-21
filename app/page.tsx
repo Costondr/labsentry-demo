@@ -23,7 +23,7 @@ function Nav() {
           <span className="text-lg font-semibold">LabSentry</span>
         </div>
         <a href="#contact" className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold px-5 py-2 rounded-lg transition text-sm md:text-base">
-          Discuss your workflow
+          Share your workflow
         </a>
       </div>
     </nav>
@@ -35,15 +35,15 @@ function Hero() {
     <section className="pt-32 pb-20 px-6">
       <div className="max-w-3xl mx-auto text-center">
         <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
-          Investigate why QC <span className="text-emerald-400">keeps shifting.</span>
+          Keep lab records organized. <span className="text-emerald-400">Make audit preparation easier.</span>
         </h1>
         <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-10">
-          LabSentry is exploring a service that connects analyzer QC patterns with calibration,
-          reagent changes, maintenance, and confirmed service findings. We&apos;re seeking input
-          from independent analyzer service professionals.
+          LabSentry is exploring a shared workspace for small to medium labs managing QC and
+          maintenance in spreadsheets. We&apos;re speaking with lab staff about missing records,
+          overdue tasks, and the scramble before audits.
         </p>
         <a href="#contact" className="inline-block bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold px-8 py-3 rounded-lg transition text-lg">
-          Discuss your troubleshooting workflow
+          Share your lab&apos;s workflow
         </a>
       </div>
     </section>
@@ -53,16 +53,16 @@ function Hero() {
 function Exploring() {
   const items = [
     {
-      title: "QC patterns",
-      desc: "Shifts and trends in an analyzer's quality control results over months, not just whether today's run passed.",
+      title: "Shared records",
+      desc: "QC results, maintenance, calibration, and service history in one place your whole team can reach, not one person's spreadsheet.",
     },
     {
-      title: "What changed around them",
-      desc: "Calibrations, reagent lot changes, and maintenance logged on the same timeline as the QC.",
+      title: "Clear follow-through",
+      desc: "What needs attention, who owns it, and what was completed, so nothing depends on someone remembering.",
     },
     {
-      title: "What service found",
-      desc: "The technician's confirmed finding on each visit, so a pattern can be checked against what was actually wrong.",
+      title: "Retrievable history",
+      desc: "Records for a review pulled together without searching spreadsheets, folders, and someone's memory.",
     },
   ];
   return (
@@ -70,8 +70,9 @@ function Exploring() {
       <div className="max-w-5xl mx-auto">
         <h2 className="text-3xl font-bold text-center mb-4">What we&apos;re exploring</h2>
         <p className="text-slate-400 text-center mb-12 max-w-2xl mx-auto">
-          When QC drifts, the explanation is usually spread across records that rarely sit together.
-          We want to learn whether bringing them together helps service teams narrow down the cause.
+          Many smaller labs keep QC and maintenance in spreadsheets, with one person holding the
+          process together. We want to learn where that breaks down, and whether a shared workspace
+          would help.
         </p>
         <div className="grid md:grid-cols-3 gap-6">
           {items.map((it) => (
@@ -89,16 +90,16 @@ function Exploring() {
 function Conversation() {
   const points = [
     "A 15–30 minute conversation, by phone or in writing, at a time that suits you.",
-    "Questions about the last recurring analyzer problem you worked on and what made it hard to diagnose.",
-    "No customer data requested. This is research, not a sales call.",
+    "Questions about how your lab tracks QC and maintenance today, and what happens before an audit.",
+    "No lab data or patient information requested. This is research, not a sales call.",
   ];
   return (
     <section className="py-20 px-6">
       <div className="max-w-3xl mx-auto">
         <h2 className="text-3xl font-bold text-center mb-4">Who we want to hear from</h2>
         <p className="text-slate-400 text-center mb-10">
-          Field service engineers and owners of independent companies that service clinical and
-          veterinary analyzers. Lab professionals who deal with recurring QC problems are welcome too.
+          Lab managers, technologists, and technicians at small to medium clinical and veterinary
+          labs. Service engineers who support these labs are welcome too.
         </p>
         <ul className="space-y-4">
           {points.map((p) => (
@@ -117,7 +118,7 @@ const inputClass =
   "w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500";
 
 function Contact() {
-  const [form, setForm] = useState({ name: "", company: "", role: "", email: "", analyzers: "" });
+  const [form, setForm] = useState({ name: "", company: "", role: "", email: "", tracking: "" });
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
@@ -143,7 +144,7 @@ function Contact() {
           data?.error === "invalid_email"
             ? "Please check your email address and try again."
             : data?.error === "invalid_fields"
-            ? "Please fill in your name, company, role, and email."
+            ? "Please fill in your name, lab or organization, role, and email."
             : "Something went wrong and your message wasn't saved."
         );
       }
@@ -156,7 +157,7 @@ function Contact() {
   return (
     <section id="contact" className="py-20 px-6 bg-slate-900/50">
       <div className="max-w-xl mx-auto text-center">
-        <h2 className="text-3xl font-bold mb-4">Discuss your troubleshooting workflow</h2>
+        <h2 className="text-3xl font-bold mb-4">Share your lab&apos;s workflow</h2>
         <p className="text-slate-400 mb-8">
           Leave your details and we&apos;ll reach out to set up a short conversation.
         </p>
@@ -167,16 +168,16 @@ function Contact() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 text-left">
             <input type="text" placeholder="Name" value={form.name} onChange={set("name")} required maxLength={120} autoComplete="name" className={inputClass} />
-            <input type="text" placeholder="Company" value={form.company} onChange={set("company")} required maxLength={200} autoComplete="organization" className={inputClass} />
-            <input type="text" placeholder="Role (for example, field service engineer)" value={form.role} onChange={set("role")} required maxLength={120} autoComplete="organization-title" className={inputClass} />
+            <input type="text" placeholder="Lab or organization" value={form.company} onChange={set("company")} required maxLength={200} autoComplete="organization" className={inputClass} />
+            <input type="text" placeholder="Role (for example, lab manager)" value={form.role} onChange={set("role")} required maxLength={120} autoComplete="organization-title" className={inputClass} />
             <input type="email" placeholder="Email" value={form.email} onChange={set("email")} required maxLength={254} autoComplete="email" className={inputClass} />
-            <input type="text" placeholder="Analyzers you service (optional)" value={form.analyzers} onChange={set("analyzers")} maxLength={500} className={inputClass} />
+            <input type="text" placeholder="How do you track QC and maintenance today? (optional)" value={form.tracking} onChange={set("tracking")} maxLength={500} className={inputClass} />
             <button
               type="submit"
               disabled={sending}
               className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold py-3 rounded-lg transition disabled:opacity-50"
             >
-              {sending ? "Sending..." : "Discuss your troubleshooting workflow"}
+              {sending ? "Sending..." : "Share your lab\u2019s workflow"}
             </button>
             {error && (
               <p role="alert" className="text-red-400 text-sm text-center">

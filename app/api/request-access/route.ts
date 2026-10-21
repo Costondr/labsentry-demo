@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { saveLead, markNotified } from "@/lib/leads";
 
 const NOTIFY_TO = "Diano.C@thecostongroup.com";
 const NOTIFY_FROM = "LabSentry <noreply@costonai.com>";
@@ -33,15 +34,41 @@ export async function POST(req: NextRequest) {
 
   const receivedAt = new Date().toISOString();
 
-  // Structured log line: a second record of every request, visible in Vercel
-  // runtime logs even if the notification email below fails.
+  // Structured log line: a short-lived backup record in Vercel runtime logs.
   console.log(JSON.stringify({ event: "access_request", lab, email, receivedAt }));
 
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.error(JSON.stringify({ event: "access_request_not_sent", reason: "RESEND_API_KEY missing", lab, email, receivedAt }));
-    return fail(503, "notification_unavailable");
+  // 1. Save first. A saved lead is never lost, even if the email fails.
+  let leadId: string | null = null;
+  try {
+    leadId = await saveLead(lab, email);
+  } catch (e) {
+    console.error(JSON.stringify({ event: "lead_not_saved", detail: String(e), lab, email, receivedAt }));
   }
+
+  // 2. Notify.
+  const notify = await sendNotification(lab, email, receivedAt);
+  if (leadId) {
+    await markNotified(leadId, notify.ok ? "sent" : "failed", notify.ok ? undefined : notify.reason);
+  }
+  if (!notify.ok) {
+    console.error(JSON.stringify({ event: "access_request_not_sent", reason: notify.reason, saved: !!leadId, lab, email, receivedAt }));
+  }
+
+  // 3. Success if the lead is stored anywhere: the database, or (degraded) your inbox.
+  if (leadId || notify.ok) {
+    if (!leadId) console.error(JSON.stringify({ event: "lead_degraded_email_only", lab, email, receivedAt }));
+    return NextResponse.json({ ok: true });
+  }
+  return fail(502, "request_not_recorded");
+}
+
+async function sendNotification(
+  lab: string,
+  email: string,
+  receivedAt: string
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { ok: false, reason: "RESEND_API_KEY missing" };
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -65,15 +92,9 @@ export async function POST(req: NextRequest) {
         `,
       }),
     });
-
-    if (!res.ok) {
-      console.error(JSON.stringify({ event: "access_request_not_sent", reason: `resend_${res.status}`, detail: await res.text(), lab, email, receivedAt }));
-      return fail(502, "notification_failed");
-    }
+    if (!res.ok) return { ok: false, reason: `resend_${res.status}: ${(await res.text()).slice(0, 300)}` };
+    return { ok: true };
   } catch (e) {
-    console.error(JSON.stringify({ event: "access_request_not_sent", reason: "network", detail: String(e), lab, email, receivedAt }));
-    return fail(502, "notification_failed");
+    return { ok: false, reason: `network: ${String(e).slice(0, 300)}` };
   }
-
-  return NextResponse.json({ ok: true });
 }

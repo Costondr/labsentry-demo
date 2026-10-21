@@ -6,11 +6,11 @@ import { Analytics } from "@vercel/analytics/next";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "LabSentry — QC Intelligence for Veterinary Diagnostic Labs",
-  description: "Automated Levy-Jennings charts, Westgard rules, audit trails, and corrective action workflows. Built specifically for vet labs.",
+  title: "LabSentry — Investigate why QC keeps shifting",
+  description: "LabSentry is exploring a service that connects analyzer QC patterns with calibration, reagent changes, maintenance, and confirmed service findings.",
   openGraph: {
-    title: "LabSentry — QC Intelligence for Vet Labs",
-    description: "Stop chasing spreadsheets. Start catching instrument drift before it catches you.",
+    title: "LabSentry — Investigate why QC keeps shifting",
+    description: "Seeking input from independent analyzer service professionals.",
     type: "website",
   },
 };

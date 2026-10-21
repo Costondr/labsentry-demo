@@ -251,7 +251,7 @@ function CTA() {
         setError(
           data?.error === "invalid_email"
             ? "Please check your email address and try again."
-            : "Something went wrong and your request wasn't sent."
+            : "Something went wrong and your request wasn't saved."
         );
       }
     } catch {
@@ -308,6 +308,7 @@ function CTA() {
               </p>
             )}
             <p className="text-slate-500 text-sm">No spam. No sales calls. Just a conversation about your QC workflow.</p>
+            <p className="text-slate-600 text-xs">We store your lab name and email only to follow up about LabSentry, and never share them.</p>
           </form>
         )}
       </div>

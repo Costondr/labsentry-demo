@@ -6,8 +6,12 @@ import { neon } from "@neondatabase/serverless";
 let tableReady: Promise<void> | null = null;
 
 function db() {
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error("DATABASE_URL missing");
+  // The Vercel–Neon connection for this project uses the "leads_" prefix.
+  const url =
+    process.env.leads_DATABASE_URL ??
+    process.env.leads_POSTGRES_URL ??
+    process.env.DATABASE_URL;
+  if (!url) throw new Error("leads_DATABASE_URL missing");
   return neon(url);
 }
 

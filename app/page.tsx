@@ -66,7 +66,7 @@ function Problems() {
     { icon: "📋", title: "Manual QC Logs", desc: "3-5 hours/week on paper or spreadsheets that no one wants to audit" },
     { icon: "⏰", title: "Delayed Detection", desc: "Instrument drift goes unnoticed for days — caught at inspection, not in real time" },
     { icon: "😰", title: "Audit Anxiety", desc: "Scrambling to compile documentation when accreditation review comes around" },
-    { icon: "🔄", title: "No Corrective Action Trail", desc: "When QC fails, there&apos;s no standardized workflow or sign-off process" },
+    { icon: "🔄", title: "No Corrective Action Trail", desc: "When QC fails, there's no standardized workflow or sign-off process" },
   ];
   return (
     <section className="py-20 px-6 bg-slate-900/50">
@@ -119,7 +119,7 @@ function Features() {
     {
       icon: "📊",
       title: "Instrument Dashboard",
-      desc: "Status cards for every analyzer. Green/yellow/red at a glance. Know your lab&apos;s health in 5 seconds."
+      desc: "Status cards for every analyzer. Green/yellow/red at a glance. Know your lab's health in 5 seconds."
     },
   ];
   return (
@@ -232,19 +232,30 @@ function CTA() {
   const [lab, setLab] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSending(true);
+    setError("");
     try {
-      await fetch("/api/request-access", {
+      const res = await fetch("/api/request-access", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, lab }),
       });
-      setSubmitted(true);
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setError(
+          data?.error === "invalid_email"
+            ? "Please check your email address and try again."
+            : "Something went wrong and your request wasn't sent."
+        );
+      }
     } catch {
-      setSubmitted(true); // still show success — we&apos;ll capture in logs
+      setError("We couldn't reach the server, so your request wasn't sent.");
     }
     setSending(false);
   }
@@ -287,6 +298,15 @@ function CTA() {
             >
               {sending ? "Sending..." : "Request Early Access"}
             </button>
+            {error && (
+              <p role="alert" className="text-red-400 text-sm">
+                {error} You can also email{" "}
+                <a href="mailto:Diano.C@thecostongroup.com?subject=LabSentry%20access%20request" className="underline">
+                  Diano.C@thecostongroup.com
+                </a>{" "}
+                directly.
+              </p>
+            )}
             <p className="text-slate-500 text-sm">No spam. No sales calls. Just a conversation about your QC workflow.</p>
           </form>
         )}

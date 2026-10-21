@@ -2,8 +2,10 @@ import { neon } from "@neondatabase/serverless";
 
 // Leads are saved to Postgres (Neon, connected through Vercel) before any
 // notification email is sent, so a failed email never loses a request.
+// Preview deployments get their own Neon branch, so test leads never reach
+// the production database.
 
-let tableReady: Promise<void> | null = null;
+let schemaReady: Promise<void> | null = null;
 
 function db() {
   // The Vercel–Neon connection for this project uses the "leads_" prefix.
@@ -15,35 +17,51 @@ function db() {
   return neon(url);
 }
 
-async function ensureTable(sql: ReturnType<typeof db>) {
-  if (!tableReady) {
-    tableReady = (async () => {
+// Idempotent, non-destructive migration: creates the table on a fresh branch
+// and adds the discovery-stage columns to an existing one. No existing row or
+// column is removed. `lab` (v1 field) becomes optional; v1 rows keep it.
+async function ensureSchema(sql: ReturnType<typeof db>) {
+  if (!schemaReady) {
+    schemaReady = (async () => {
       await sql`
         CREATE TABLE IF NOT EXISTS leads (
           id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
           created_at    timestamptz NOT NULL DEFAULT now(),
-          lab           text NOT NULL,
+          lab           text,
           email         text NOT NULL,
           environment   text NOT NULL,
           notify_status text NOT NULL DEFAULT 'pending',
           notify_error  text
         )`;
+      await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS name text`;
+      await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS company text`;
+      await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS role text`;
+      await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS tracking text`;
+      await sql`ALTER TABLE leads ALTER COLUMN lab DROP NOT NULL`;
     })().catch((e) => {
-      tableReady = null; // retry on the next request
+      schemaReady = null; // retry on the next request
       throw e;
     });
   }
-  return tableReady;
+  return schemaReady;
 }
 
+export type Lead = {
+  name: string;
+  company: string;
+  role: string;
+  email: string;
+  tracking: string | null;
+};
+
 /** Saves a lead and returns its id. Throws if the database is unavailable. */
-export async function saveLead(lab: string, email: string): Promise<string> {
+export async function saveLead(lead: Lead): Promise<string> {
   const sql = db();
-  await ensureTable(sql);
+  await ensureSchema(sql);
   const environment = process.env.VERCEL_ENV ?? "development";
   const rows = (await sql`
-    INSERT INTO leads (lab, email, environment)
-    VALUES (${lab}, ${email}, ${environment})
+    INSERT INTO leads (name, company, role, email, tracking, environment)
+    VALUES (${lead.name}, ${lead.company}, ${lead.role}, ${lead.email}, ${lead.tracking}, ${environment})
     RETURNING id`) as { id: string }[];
   return rows[0].id;
 }

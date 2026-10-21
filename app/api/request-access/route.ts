@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { saveLead, markNotified } from "@/lib/leads";
+import { saveLead, markNotified, type Lead } from "@/lib/leads";
 
 const NOTIFY_TO = "Diano.C@thecostongroup.com";
 const NOTIFY_FROM = "LabSentry <noreply@costonai.com>";
@@ -18,57 +18,71 @@ function fail(status: number, error: string) {
   return NextResponse.json({ ok: false, error }, { status });
 }
 
+/** Trimmed string from the body, or "" when missing. */
+function field(body: Record<string, unknown>, key: string): string {
+  const v = body?.[key];
+  return typeof v === "string" ? v.trim() : "";
+}
+
 export async function POST(req: NextRequest) {
-  let email = "";
-  let lab = "";
+  let body: Record<string, unknown>;
   try {
-    const body = await req.json();
-    email = String(body?.email ?? "").trim();
-    lab = String(body?.lab ?? "").trim();
+    body = await req.json();
   } catch {
     return fail(400, "invalid_request");
   }
 
-  if (!EMAIL_RE.test(email) || email.length > 254) return fail(400, "invalid_email");
-  if (!lab || lab.length > 200) return fail(400, "invalid_lab");
+  const name = field(body, "name");
+  const company = field(body, "company");
+  const role = field(body, "role");
+  const email = field(body, "email");
+  const trackingRaw = field(body, "tracking");
 
+  if (!EMAIL_RE.test(email) || email.length > 254) return fail(400, "invalid_email");
+  if (!name || name.length > 120 || !company || company.length > 200 || !role || role.length > 120 || trackingRaw.length > 500) {
+    return fail(400, "invalid_fields");
+  }
+
+  const lead: Lead = { name, company, role, email, tracking: trackingRaw || null };
   const receivedAt = new Date().toISOString();
 
   // Structured log line: a short-lived backup record in Vercel runtime logs.
-  console.log(JSON.stringify({ event: "access_request", lab, email, receivedAt }));
+  console.log(JSON.stringify({ event: "access_request", ...lead, receivedAt }));
 
   // 1. Save first. A saved lead is never lost, even if the email fails.
   let leadId: string | null = null;
   try {
-    leadId = await saveLead(lab, email);
+    leadId = await saveLead(lead);
   } catch (e) {
-    console.error(JSON.stringify({ event: "lead_not_saved", detail: String(e), lab, email, receivedAt }));
+    console.error(JSON.stringify({ event: "lead_not_saved", detail: String(e), ...lead, receivedAt }));
   }
 
   // 2. Notify.
-  const notify = await sendNotification(lab, email, receivedAt);
+  const notify = await sendNotification(lead, receivedAt);
   if (leadId) {
     await markNotified(leadId, notify.ok ? "sent" : "failed", notify.ok ? undefined : notify.reason);
   }
   if (!notify.ok) {
-    console.error(JSON.stringify({ event: "access_request_not_sent", reason: notify.reason, saved: !!leadId, lab, email, receivedAt }));
+    console.error(JSON.stringify({ event: "access_request_not_sent", reason: notify.reason, saved: !!leadId, ...lead, receivedAt }));
   }
 
   // 3. Success if the lead is stored anywhere: the database, or (degraded) your inbox.
   if (leadId || notify.ok) {
-    if (!leadId) console.error(JSON.stringify({ event: "lead_degraded_email_only", lab, email, receivedAt }));
+    if (!leadId) console.error(JSON.stringify({ event: "lead_degraded_email_only", ...lead, receivedAt }));
     return NextResponse.json({ ok: true });
   }
   return fail(502, "request_not_recorded");
 }
 
 async function sendNotification(
-  lab: string,
-  email: string,
+  lead: Lead,
   receivedAt: string
 ): Promise<{ ok: true } | { ok: false; reason: string }> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { ok: false, reason: "RESEND_API_KEY missing" };
+
+  const row = (label: string, value: string) =>
+    `<p><strong>${label}:</strong> ${escapeHtml(value)}</p>`;
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -80,15 +94,18 @@ async function sendNotification(
       body: JSON.stringify({
         from: NOTIFY_FROM,
         to: NOTIFY_TO,
-        reply_to: email,
-        subject: `LabSentry access request: ${lab.slice(0, 80)}`,
+        reply_to: lead.email,
+        subject: `LabSentry conversation request: ${lead.name.slice(0, 60)}, ${lead.company.slice(0, 60)}`,
         html: `
-          <h2>New LabSentry access request</h2>
-          <p><strong>Lab:</strong> ${escapeHtml(lab)}</p>
-          <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+          <h2>New LabSentry conversation request</h2>
+          ${row("Name", lead.name)}
+          ${row("Lab or organization", lead.company)}
+          ${row("Role", lead.role)}
+          ${row("Email", lead.email)}
+          ${row("Tracks QC and maintenance with", lead.tracking ?? "Not given")}
           <p><strong>Received:</strong> ${new Date(receivedAt).toLocaleString("en-US", { timeZone: "America/New_York" })}</p>
           <hr>
-          <p>Reply directly to this email to respond to the prospect.</p>
+          <p>Reply directly to this email to respond.</p>
         `,
       }),
     });
